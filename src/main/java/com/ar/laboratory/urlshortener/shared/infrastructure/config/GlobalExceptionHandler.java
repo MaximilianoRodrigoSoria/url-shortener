@@ -4,6 +4,9 @@ import com.ar.laboratory.urlshortener.example.domain.exception.ExampleAlreadyExi
 import com.ar.laboratory.urlshortener.example.domain.exception.ExampleNotFoundException;
 import com.ar.laboratory.urlshortener.shared.infrastructure.exception.BadRequestException;
 import com.ar.laboratory.urlshortener.shared.infrastructure.exception.InfrastructureException;
+import com.ar.laboratory.urlshortener.link.domain.exception.CodeAlreadyExistsException;
+import com.ar.laboratory.urlshortener.link.domain.exception.LinkExpiredException;
+import com.ar.laboratory.urlshortener.link.domain.exception.LinkNotFoundException;
 import com.ar.laboratory.urlshortener.shared.infrastructure.logging.MdcFilter;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import java.time.LocalDateTime;
@@ -80,6 +83,24 @@ public class GlobalExceptionHandler {
                         .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(LinkNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleLinkNotFound(
+            LinkNotFoundException ex, WebRequest request) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(LinkExpiredException.class)
+    public ResponseEntity<ErrorResponse> handleLinkExpired(
+            LinkExpiredException ex, WebRequest request) {
+        return build(HttpStatus.GONE, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(CodeAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleCodeExists(
+            CodeAlreadyExistsException ex, WebRequest request) {
+        return build(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -168,6 +189,20 @@ public class GlobalExceptionHandler {
                         .build();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    private ResponseEntity<ErrorResponse> build(
+            HttpStatus status, String message, WebRequest request) {
+        return ResponseEntity.status(status)
+                .body(
+                        ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(status.value())
+                                .error(status.getReasonPhrase())
+                                .message(message)
+                                .path(getPath(request))
+                                .traceId(generateTraceId())
+                                .build());
     }
 
     private String getPath(WebRequest request) {

@@ -42,9 +42,13 @@ Java 21 · Redis · PostgreSQL · Docker · Gradle · Flyway · Docker · JUnit 
 
 Organizado por **feature** en capas `domain -> application -> infrastructure`, con la regla de dependencia verificada por ArchUnit. La logica de negocio (dominio y casos de uso) no depende de framework ni de infraestructura; los adaptadores (web, persistencia, mensajeria) implementan puertos definidos por la aplicacion.
 
+## API
+
+Contexto `/url-shortener`. `POST /api/v1/links` crea un enlace; `GET /r/{code}` redirige (302) y registra la visita; `GET /api/v1/links/{code}/stats` da el total de visitas. Rate limiting con Resilience4j.
+
 ## Estado
 
-🚧 En planificacion / arranque. El diseno detallado (epicas, historias y criterios de aceptacion) vive en el plan del portafolio.
+✅ Nucleo funcional implementado: creacion de enlaces (codigo base62 aleatorio o personalizado), redireccion con registro de visitas, estadisticas, expiracion, y rate limiting. Persistencia JPA/PostgreSQL + migracion Flyway, tests (unit + Testcontainers). Capa siguiente para escalar: cache Redis para lookups calientes y rate limiting distribuido en Redis.
 
 ---
 

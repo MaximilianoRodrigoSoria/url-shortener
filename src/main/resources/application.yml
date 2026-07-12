@@ -124,6 +124,10 @@ logging:
 
 # Configuración de aplicación
 app:
+  # Acortador
+  shortener:
+    base-url: "http://localhost:8080/url-shortener"
+
   # Habilitar/deshabilitar caché con Redis
   # Valores: true (habilita caché) / false (deshabilita caché)
   cache:
@@ -183,4 +187,9 @@ resilience4j:
         # Tiempo máximo que un hilo espera para obtener un permiso antes de recibir 429
         timeout-duration: 0s
         # Registrar métricas en Actuator
+        register-health-indicator: true
+      links-api:
+        limit-for-period: 100
+        limit-refresh-period: 1s
+        timeout-duration: 0s
         register-health-indicator: true
